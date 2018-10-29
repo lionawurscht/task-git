@@ -31,7 +31,7 @@ fi
 
 # Push by default
 PUSH=1
-PULL=0
+PULL=1
 
 # Check if --no-push is passed as an argument.
 for i in $@
@@ -92,8 +92,7 @@ fi
 
 if [ "$PULL" == 1 ]; then
     echo "Fetching & Applying updates from $GIT_REMOTE"
-    git fetch && git pull
-    exit 0
+    git fetch > $LOGFILE && git pull > $LOGFILE
 fi
 
 # Call task, commit files and push if flag is set.
