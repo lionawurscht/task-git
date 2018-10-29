@@ -30,7 +30,7 @@ if ! [ -d "$DATA_DIR/.git" ]; then
 fi
 
 # Push by default
-PUSH=1
+PUSH=0
 PULL=1
 
 # Check if --no-push is passed as an argument.
@@ -48,13 +48,13 @@ for i in $1
 do
     case $i in
         add|append|completed|delete|done|due|duplicate|edit|end|modify|prepend|rm|start|stop)
-            echo "Push"
+            PUSH=1
             ;;
         push)
-            echo "Push"
+
             ;;
         pull)
-            echo "Pull"
+
             PULL=1
             ;;
         *)
@@ -71,7 +71,7 @@ then
         case $i in
             add|append|completed|delete|done|due|duplicate|edit|end|modify|prepend|rm|start|stop)
                 PUSH=1
-                echo "Push"
+
                 ;;
             *)
                 ;;
