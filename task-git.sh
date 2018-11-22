@@ -10,6 +10,7 @@ DATA_RC=$(task _show | grep data.location)
 DATA=(${DATA_RC//=/ })
 DATA_DIR=${DATA[1]}
 
+
 # Need to expand home dir ~
 eval DATA_DIR=$DATA_DIR
 
@@ -30,8 +31,20 @@ if ! [ -d "$DATA_DIR/.git" ]; then
 fi
 
 # Push by default
-PUSH=0
-PULL=1
+PUSH_RC=$(task _show | grep git.push)
+if [ -z $PUSH_RC ]; then
+    PUSH=0
+else
+    PUSH_=(${PUSH_RC//=/ })
+    PUSH=${PUSH_[1]}
+fi
+PULL_RC=$(task _show | grep git.pull)
+if [ -z $PULL_RC ]; then
+    PULL=1
+else
+    PULL_=(${PUSH_RC//=/ })
+    PULL=${PUSH_[1]}
+fi
 
 # Check if --no-push is passed as an argument.
 for i in $@
