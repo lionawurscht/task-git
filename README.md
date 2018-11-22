@@ -21,6 +21,10 @@ is altered.
 
 It is recommended to use the Taskwarrior database only on one machine, as you will be resolving conflicts if using the same task database on multiple machines.
 
+## Installation
+
+On arch you may install using the provided `PKGBUILD` in `arch`. Just run `makepkg -si`.
+
 ## License
 
 task-git.sh
