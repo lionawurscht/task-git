@@ -5,6 +5,9 @@ LOGFILE=/dev/null
 # Get task command
 TASK_COMMAND="task ${@}"
 
+# Debug option
+_DEBUG="${DEBUG:-false}"
+
 # Get data dir
 DATA_RC=$(task _show | grep data.location)
 DATA=(${DATA_RC//=/ })
@@ -34,16 +37,21 @@ fi
 PUSH_RC=$(task _show | grep git.push)
 if [ -z $PUSH_RC ]; then
     PUSH=0
+    $_DEBUG && echo "Couldn't find push option set in task configuration file using default: ${PUSH}. Set git.push to 1/0 to change this."
 else
     PUSH_=(${PUSH_RC//=/ })
     PUSH=${PUSH_[1]}
+    $_DEBUG && echo "Using option from task configuration file - push: ${PUSH}. Change git.push to 1/0 to change this."
 fi
+
 PULL_RC=$(task _show | grep git.pull)
 if [ -z $PULL_RC ]; then
     PULL=1
+    $_DEBUG && echo "Couldn't find pull option set in task configuration file using default: ${PULL}. Set git.pull to 1/0 to change this."
 else
-    PULL_=(${PUSH_RC//=/ })
-    PULL=${PUSH_[1]}
+    PULL_=(${PULL_RC//=/ })
+    PULL=${PULL_[1]}
+    $_DEBUG && echo "Using option from task configuration file - pull: ${PULL}. Change git.pull to 1/0 to change this."
 fi
 
 # Check if --no-push is passed as an argument.
@@ -51,6 +59,7 @@ for i in $@
 do
     if [ "$i" == "--no-push" ]; then
         # Set the PUSH flag, and remove this from the arguments list.
+        $_DEBUG && echo "--no-push found in args, not pushing to git."
         PUSH=0
         shift
     fi
@@ -64,7 +73,6 @@ do
             PUSH=1
             ;;
         push)
-
             ;;
         pull)
 
