@@ -16,6 +16,11 @@ is altered.
 5. (Optional) Edit /etc/bash_completion.d/task to add this line to the end of the file so `task-git` will <TAB>-complete the same as `task`
 
     `complete -o nospace -F _task task-git`
+
+   Or for zsh add the following to your `~/.zshrc`
+
+   `compdef _task 'task-git'`
+
 6. You can set the default behavior for push/pull via the task config file. Set `git.push` and `git.pull` to either `1` or `0`.
 7. For some debug messaged run like this: `DEBUG=true task-git`
 
