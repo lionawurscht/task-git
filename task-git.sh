@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOGFILE=/dev/null
+_LOGFILE=${LOGFILE:-/dev/null}
 
 # Get task command
 TASK_COMMAND="task ${@}"
@@ -17,10 +17,36 @@ DATA_DIR=${DATA[1]}
 # Need to expand home dir ~
 eval DATA_DIR=$DATA_DIR
 
+log () {
+  $_DEBUG && echo $* >&1
+  echo $* > $_LOGFILE
+}
+
+error () {
+  echo $* >&2
+  exit 1
+}
+
+get_task_option () {
+    option_=$(task _show | grep $2)
+    if [ -z $option ]; then
+        option=$3
+        log "Couldn't find $2 option set in task configuration file using default: $3. Run 'task config $2 <value>' to change this."
+    else
+        option_=(${option_//=/ })
+        option=${option_[1]}
+        log "Using option $2 from task configuration file: ${option}. Run 'task config $2 <value>' to change this."
+    fi
+    log "Setting $1 to ${option}"
+    eval "$1='${option}'"
+}
+
+log "Logging to ${_LOGFILE}."
+
+
 # Exit if we don't have a tasks data directory
 if [ ! -e "$DATA_DIR" ]; then
-    echo "Could not load data directory $DATA_DIR."
-    exit 1
+    error "Could not load data directory $DATA_DIR."
 fi
 
 # Check if git repo exists
@@ -34,32 +60,15 @@ if ! [ -d "$DATA_DIR/.git" ]; then
 fi
 
 # Push by default
-PUSH_RC=$(task _show | grep git.push)
-if [ -z $PUSH_RC ]; then
-    PUSH=0
-    $_DEBUG && echo "Couldn't find push option set in task configuration file using default: ${PUSH}. Set git.push to 1/0 to change this."
-else
-    PUSH_=(${PUSH_RC//=/ })
-    PUSH=${PUSH_[1]}
-    $_DEBUG && echo "Using option from task configuration file - push: ${PUSH}. Change git.push to 1/0 to change this."
-fi
-
-PULL_RC=$(task _show | grep git.pull)
-if [ -z $PULL_RC ]; then
-    PULL=1
-    $_DEBUG && echo "Couldn't find pull option set in task configuration file using default: ${PULL}. Set git.pull to 1/0 to change this."
-else
-    PULL_=(${PULL_RC//=/ })
-    PULL=${PULL_[1]}
-    $_DEBUG && echo "Using option from task configuration file - pull: ${PULL}. Change git.pull to 1/0 to change this."
-fi
+get_task_option PUSH git.push 0
+get_task_option PULL git.pull 1
 
 # Check if --no-push is passed as an argument.
 for i in $@
 do
     if [ "$i" == "--no-push" ]; then
         # Set the PUSH flag, and remove this from the arguments list.
-        $_DEBUG && echo "--no-push found in args, not pushing to git."
+        echo "--no-push found in args, not pushing to git."
         PUSH=0
         shift
     fi
@@ -102,7 +111,7 @@ fi
 
 
 
-pushd $DATA_DIR > $LOGFILE
+pushd $DATA_DIR > $_LOGFILE
 # Check if we have a place to push to
 GIT_REMOTE=$(git remote -v | grep push | grep origin | awk '{print $2}')
 if [ -z $GIT_REMOTE ]; then
@@ -113,22 +122,22 @@ fi
 
 if [ "$PULL" == 1 ]; then
     echo "Fetching & Applying updates from $GIT_REMOTE"
-    git fetch > $LOGFILE && git pull > $LOGFILE
+    git fetch > $_LOGFILE && git pull > $_LOGFILE
 fi
 
 # Call task, commit files and push if flag is set.
 /usr/bin/task $@
 
 # Add to git
-git add .  > $LOGFILE
-git commit -m "$TASK_COMMAND" > $LOGFILE
+git add .  > $_LOGFILE
+git commit -m "$TASK_COMMAND" > $_LOGFILE
 
 # Push
 if [ "$PUSH" == 1 ]; then
     echo "Pushing updates to $GIT_REMOTE"
-    git push origin master > $LOGFILE
+    git push origin master > $_LOGFILE
 fi
 
-popd > $LOGFILE
+popd > $_LOGFILE
 
 exit 0
